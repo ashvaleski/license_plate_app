@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_file
 import cv2
 import json
 import os
+import numpy as np
 
 app = Flask(__name__)
 
