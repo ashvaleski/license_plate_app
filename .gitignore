@@ -1,4 +1,20 @@
-venv/
+# Python artifacts
 __pycache__/
 *.pyc
-.DS_Store
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+
+# IDE settings
+*.idea/
+*.vscode/
+
+# Flask generated files
+*.sqlite3
+*.db
+
+# Highlighted images (optional)
+static/highlighted.jpg
+

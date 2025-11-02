@@ -1,44 +1,63 @@
 from flask import Flask, render_template, request, send_file
-import json
 import cv2
-import io
+import json
 import os
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
 
-# Load detections once
-with open("plate_detections.json", "r") as f:
-    detections = json.load(f)
-
+# Paths
 IMAGE_PATH = "ceiling-photo.jpg"
+DETECTIONS_PATH = "plate_detections.json"
+OUTPUT_PATH = "static/highlighted.jpg"
+
+os.makedirs("static", exist_ok=True)
 
 @app.route("/")
 def index():
-    # Get all unique states for dropdown
-    states = sorted(set(d.get("state", "Unknown") for d in detections))
+    states = sorted([
+        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'Aruba', 'California', 'Canada', 
+        'Cayman Islands', 'Colorado', 'Connecticut', 'Curacao', 'Delaware', 'Florida', 
+        'Georgia', 'Grand Cayman', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 
+        'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 
+        'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 
+        'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 
+        'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Panama', 
+        'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 
+        'Texas', 'US Government', 'Utah', 'Venezuela', 'Vermont', 'Virginia', 
+        'Washington', 'Washington D.C.', 'Washington DC', 'West Virginia', 
+        'Wisconsin', 'Wyoming'
+    ])
     return render_template("index.html", states=states)
 
-@app.route("/highlight", methods=["POST"])
-def highlight():
-    state_query = request.form.get("state", "").lower()
-    image = cv2.imread(IMAGE_PATH)
+@app.route("/get_image")
+def get_image():
+    state = request.args.get("state")
+    if not state:
+        return "Error: no state provided", 400
 
-    # Draw rectangles: green for match, gray for others
-    for det in detections:
-        x, y, w, h = det["x"], det["y"], det["width"], det["height"]
-        label = det.get("state", "Unknown")
-        color = (0, 255, 0) if label.lower() == state_query else (180, 180, 180)
-        cv2.rectangle(image, (x, y), (x + w, y + h), color, 8)
-        cv2.putText(image, label, (x, max(30, y - 10)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+    # Load image
+    img = cv2.imread(IMAGE_PATH)
+    if img is None:
+        return "Error: could not load image", 500
 
-    # Encode as JPEG
-    _, buffer = cv2.imencode(".jpg", image)
-    return send_file(io.BytesIO(buffer.tobytes()),
-                     mimetype="image/jpeg",
-                     as_attachment=False,
-                     download_name="annotated.jpg")
+    # Create white background same size as original image
+    spotlight = 255 * np.ones_like(img)
+
+    # Load detections
+    with open(DETECTIONS_PATH) as f:
+        detections = json.load(f)
+
+    # Copy only matching plates onto white image
+    for d in detections:
+        if d["state"].lower() == state.lower():
+            x, y, w, h = d["x"], d["y"], d["width"], d["height"]
+            spotlight[y:y+h, x:x+w] = img[y:y+h, x:x+w]
+
+    # Save result
+    cv2.imwrite(OUTPUT_PATH, spotlight)
+
+    return send_file(OUTPUT_PATH, mimetype="image/jpeg")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
-
+    import numpy as np
+    app.run(debug=True)
