@@ -2,8 +2,9 @@ from flask import Flask, render_template, request, send_file
 import json
 import cv2
 import io
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Load detections once
 with open("plate_detections.json", "r") as f:
@@ -39,4 +40,5 @@ def highlight():
                      download_name="annotated.jpg")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+
