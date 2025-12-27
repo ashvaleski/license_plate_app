@@ -96,6 +96,7 @@
 
     .imgWrap { position: relative; }
 
+    /* MIRROR IMAGE LEFT ↔ RIGHT */
     img.result {
       display: block;
       width: 100%;
@@ -104,6 +105,7 @@
       touch-action: manipulation;
       -webkit-user-select: none;
       user-select: none;
+      transform: scaleX(-1);
     }
 
     /* Loading bar */
@@ -175,6 +177,7 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* MIRROR ZOOM IMAGE TOO */
     .modalImgWrap img {
       display: block;
       width: 1400px;
@@ -182,6 +185,7 @@
       height: auto;
       background: #fff;
       margin: 0 auto;
+      transform: scaleX(-1);
     }
 
     @media (min-width: 700px) {
