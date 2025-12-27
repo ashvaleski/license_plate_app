@@ -5,19 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>License Plate Spotlight</title>
 
-  <!-- Optional: nicer iOS status bar behavior when saved to home screen -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
   <style>
     :root { --pad: 14px; --radius: 14px; }
+
     body {
       margin: 0;
       font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       background: #0b0b0b;
       color: #fff;
     }
+
     .wrap { max-width: 900px; margin: 0 auto; padding: var(--pad); }
+
     .header {
       position: sticky;
       top: 0;
@@ -27,11 +29,23 @@
       padding: var(--pad);
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    h1 { margin: 0 0 10px; font-size: 18px; font-weight: 700; letter-spacing: .2px; }
-    .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
     select, button {
       width: 100%;
-      font-size: 16px;              /* prevents iOS zoom-on-focus */
+      font-size: 16px;
       padding: 14px 12px;
       border-radius: var(--radius);
       border: 1px solid rgba(255,255,255,.14);
@@ -39,15 +53,26 @@
       color: #fff;
       outline: none;
     }
+
     button {
       font-weight: 700;
       cursor: pointer;
       background: rgba(255,255,255,.12);
     }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    .hint { margin-top: 10px; font-size: 13px; color: rgba(255,255,255,.7); }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: rgba(255,255,255,.7);
+    }
 
     .content { padding: var(--pad); }
+
     .card {
       background: rgba(255,255,255,.04);
       border: 1px solid rgba(255,255,255,.10);
@@ -55,7 +80,22 @@
       overflow: hidden;
       box-shadow: 0 12px 30px rgba(0,0,0,.35);
     }
+
+    /* Orientation bar */
+    .orientBar {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 6px 0;
+      color: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.08);
+      border-bottom: 1px solid rgba(255,255,255,.18);
+      user-select: none;
+    }
+
     .imgWrap { position: relative; }
+
     img.result {
       display: block;
       width: 100%;
@@ -66,7 +106,7 @@
       user-select: none;
     }
 
-    /* Loading overlay */
+    /* Loading bar */
     .loadingBar {
       display: none;
       align-items: center;
@@ -77,30 +117,36 @@
       border-top: 1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.35);
     }
+
     .spinner {
-      width: 16px; height: 16px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       border: 2px solid rgba(255,255,255,.25);
       border-top-color: rgba(255,255,255,.9);
       animation: spin .9s linear infinite;
     }
+
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Fullscreen zoom modal */
+    /* Zoom modal */
     .modal {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 100;
       background: rgba(0,0,0,.92);
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
+
     .modalInner {
       width: 100%;
       height: 100%;
       display: grid;
       grid-template-rows: auto 1fr;
     }
+
     .modalTop {
       display: flex;
       justify-content: space-between;
@@ -108,7 +154,13 @@
       padding: 12px 14px;
       border-bottom: 1px solid rgba(255,255,255,.10);
     }
-    .modalTop .title { font-weight: 700; font-size: 14px; color: rgba(255,255,255,.9); }
+
+    .modalTop .title {
+      font-weight: 700;
+      font-size: 14px;
+      color: rgba(255,255,255,.9);
+    }
+
     .closeBtn {
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.08);
@@ -117,20 +169,21 @@
       padding: 10px 12px;
       font-size: 14px;
     }
+
     .modalImgWrap {
       overflow: auto;
       -webkit-overflow-scrolling: touch;
     }
+
     .modalImgWrap img {
       display: block;
-      width: 1400px;   /* gives a “zoomed in” canvas; user can pan */
+      width: 1400px;
       max-width: none;
       height: auto;
       background: #fff;
       margin: 0 auto;
     }
 
-    /* Slightly nicer on larger screens */
     @media (min-width: 700px) {
       h1 { font-size: 20px; }
       .controls { grid-template-columns: 1fr 220px; }
@@ -157,6 +210,7 @@
 
   <div class="content wrap">
     <div class="card" id="resultCard" style="display:none;">
+      <div class="orientBar">TV</div>
       <div class="imgWrap">
         <img id="resultImg" class="result" alt="Filtered plates result" />
       </div>
@@ -167,7 +221,6 @@
     </div>
   </div>
 
-  <!-- Zoom modal -->
   <div class="modal" id="modal">
     <div class="modalInner">
       <div class="modalTop">
@@ -204,23 +257,20 @@
       showBtn.disabled = !stateSelect.value;
     });
 
-    showBtn.addEventListener('click', async () => {
+    showBtn.addEventListener('click', () => {
       const state = stateSelect.value;
       if (!state) return;
 
-      // Show card + loading state
       resultCard.style.display = 'block';
       setLoading(true);
 
-      // Avoid cached image when switching states quickly
       const url = `/get_image?state=${encodeURIComponent(state)}&t=${Date.now()}`;
 
-      // Start load
       resultImg.onload = () => {
         setLoading(false);
-        // Scroll image into view on mobile
         resultImg.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
+
       resultImg.onerror = () => {
         setLoading(false);
         alert("Could not load image. Try again.");
@@ -229,14 +279,15 @@
       resultImg.src = url;
     });
 
-    // Tap-to-zoom
     resultImg.addEventListener('click', () => {
       if (!resultImg.src) return;
       modalImg.src = resultImg.src;
-      modalTitle.textContent = stateSelect.value ? `${stateSelect.value} — Zoom` : 'Zoom';
+      modalTitle.textContent = stateSelect.value
+        ? `${stateSelect.value} — Zoom`
+        : 'Zoom';
       modal.style.display = 'block';
       document.body.style.overflow = 'hidden';
-      // Start at top-center
+
       const wrap = document.getElementById('modalImgWrap');
       wrap.scrollTop = 0;
       wrap.scrollLeft = Math.max(0, (wrap.scrollWidth - wrap.clientWidth) / 2);
@@ -247,7 +298,6 @@
       document.body.style.overflow = '';
     });
 
-    // Close modal on background tap
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.style.display = 'none';
